@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rakuten API Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .item-image img {
+            max-width: 100px;
+            max-height: 100px;
+            margin-right: 10px;
+        }
+
+        .display-information-wrapper {
+            margin-top: 20px;
+        }
+
+        select, button {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="display-information-wrapper">
+        <ul></ul>
+    </div>
+
+    <!-- 楽天APIボタン -->
+    <button type="button" class="get-information">ランダムなゲーミングマウス表示</button>
+</div>
+
+<script>
+    $(function(){
+        let getInformationButton = $('button.get-information');
+        let appId = '1000646968939020152';
+        let reqUrl = 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601';
+
+        getInformationButton.click(() => {
+            // ランダムな値を生成
+            let randomTagId = getRandomTagId();
+            let minPrice = 1000;  // 最小価格
+            let maxPrice = 50000; // 最大価格
+
+            $.ajax({
+                url: reqUrl,
+                type: 'GET',
+                data: {
+                    'applicationId': appId,
+                    'formatVersion': 2,
+                    'hits': 1,  // 1つだけ取得
+                    'keyword': 'ゲーミングマウス',
+                    'condition': '0',
+                    'tagId': randomTagId, // ランダムなtagIdを使用
+                    'minPrice': minPrice,
+                    'maxPrice': maxPrice,
+                }
+            })
+            .done((data) => {
+                let items = data.Items;
+                if (items.length > 0) {
+                    let item = items[0];
+                    displayGamingMouse(item);
+                }
+            })
+            .fail((xhr, status, error) => {
+                console.log('Error:', error);
+            });
+        });
+
+        // ランダムなtagIdを生成する関数
+        function getRandomTagId() {
+            // ゲーミングマウスに関連するtagIdの候補
+            let tagIds = ['1000873', '1000886', '1000881', '1000883', '1000878', '1000876', '1000877', '1000875', '1000874', '1000884', '1000885', '1000882', '1000880', '1000879', '1016062', '1000887'];
+
+            // ランダムなtagIdを選択
+            let randomIndex = Math.floor(Math.random() * tagIds.length);
+            return tagIds[randomIndex];
+        }
+
+        // 結果を表示する関数
+        function displayGamingMouse(item) {
+            let displayInformationWrapper = $('.display-information-wrapper');
+            let itemListHtml = `
+                <li class="item">
+                    <figure class="item-image">
+                        <img src="${item['mediumImageUrls'][0]}" />
+                    </figure>
+                    <div class="item-name">${item['itemName']}</div>
+                    <div class="item-price">￥${item['itemPrice']}</div>
+                    <div class="item-review-count">レビュー数: ${item['reviewCount']}</div>
+                    <div class="item-rating-average">評価平均: ${item['reviewAverage']}</div>
+                    <a href="${item['itemUrl']}" target="_blank">商品ページへ</a>
+                </li>`;
+
+            displayInformationWrapper.find('ul').empty().append(itemListHtml);
+        }
+    });
+</script>
+</body>
+</html>
